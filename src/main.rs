@@ -39,7 +39,7 @@ fn wait_for_quit() {
     loop {
         if let Ok(character) = stdout.read_char() {
             match character {
-                'q' => break,
+                't' => break,
                 _ => (),
             }
         }
