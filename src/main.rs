@@ -1,14 +1,29 @@
+mod scheduler;
+
 use std::{thread};
 use std::time::{Duration};
 use chrono::{Local, NaiveTime};
 use clokwerk::{Job, Scheduler};
 use clokwerk::Interval::Weekday;
 use console::Term;
+use dioxus::prelude::*;
+
 
 fn main() {
     update_steam_status();
     schedule();
-    wait_for_quit();
+    dioxus_desktop::launch(app);
+}
+
+fn app(cx: Scope) -> Element {
+    cx.render(rsx! {
+        div {
+            "Hello, world!"
+        }
+        button {
+            "hello, world"
+        }
+    })
 }
 
 fn update_steam_status() {
