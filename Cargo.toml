@@ -1,5 +1,5 @@
 [package]
-name = "untitled"
+name = "steam-status-scheduler"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,5 +8,6 @@ edition = "2021"
 [dependencies]
 chrono = "0.4.30"
 clokwerk = "0.4.0"
+console = "0.15.7"
 open = "5.0.0"
 tray-item = "0.8.0"

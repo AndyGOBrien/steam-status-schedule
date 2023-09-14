@@ -3,11 +3,12 @@ use std::time::{Duration};
 use chrono::{Local, NaiveTime};
 use clokwerk::{Job, Scheduler};
 use clokwerk::Interval::Weekday;
+use console::Term;
 
 fn main() {
     update_steam_status();
     schedule();
-    loop_main();
+    wait_for_quit();
 }
 
 fn update_steam_status() {
@@ -30,9 +31,18 @@ fn set_steam_invisible() {
     open::that("steam://friends/status/invisible").unwrap();
 }
 
-fn loop_main() {
+fn wait_for_quit() {
+    println!("Steam will show as invisible from 5am to 5pm\n");
+    println!("Press `t` to terminate...");
+    let stdout = Term::buffered_stdout();
+
     loop {
-        thread::sleep(Duration::from_millis(100));
+        if let Ok(character) = stdout.read_char() {
+            match character {
+                'q' => break,
+                _ => (),
+            }
+        }
     }
 }
 
