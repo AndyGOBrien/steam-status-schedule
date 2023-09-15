@@ -1,4 +1,0 @@
-struct Scheduler;
-impl Scheduler {
-
-}
