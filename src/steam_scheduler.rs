@@ -9,6 +9,7 @@ pub struct InvisScheduler {
     pub(crate) start_time: NaiveTime,
     pub(crate) end_time: NaiveTime,
 }
+
 impl InvisScheduler {
 
     pub fn start_schedule(self) {
@@ -33,7 +34,7 @@ impl InvisScheduler {
     fn update_steam_status(&self) {
         let current_time = Local::now().time();
 
-        if current_time > self.start_time && current_time < self.end_time {
+        if current_time >= self.start_time && current_time <= self.end_time {
             self.set_steam_invisible()
         } else {
             self.set_steam_online()
