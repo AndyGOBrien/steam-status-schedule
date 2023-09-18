@@ -1,9 +1,11 @@
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread;
 use std::time::Duration;
 use chrono::{Local, NaiveTime};
 use clokwerk::{Interval, Job, Scheduler};
 
-#[derive(Eq, PartialEq, Debug, Copy, Clone)]
+#[derive(Eq, PartialEq, Copy, Debug, Clone)]
 pub struct InvisScheduler {
     pub(crate) interval: Interval,
     pub(crate) start_time: NaiveTime,
@@ -12,9 +14,10 @@ pub struct InvisScheduler {
 
 impl InvisScheduler {
 
-    pub fn start_schedule(self) {
+    pub fn start_schedule(self, stop: &Arc<AtomicBool>) {
         self.update_steam_status();
         let mut scheduler = Scheduler::new();
+        let my_stop = Arc::clone(&stop);
 
         scheduler
             .every(self.interval)
@@ -24,8 +27,9 @@ impl InvisScheduler {
             .run(move || self.update_steam_status());
 
         thread::spawn(move || {
-            loop {
+            while !my_stop.load(Ordering::SeqCst) {
                 scheduler.run_pending();
+                println!("running...");
                 thread::sleep(Duration::from_millis(1000));
             }
         });
