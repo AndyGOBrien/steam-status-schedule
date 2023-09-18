@@ -54,21 +54,23 @@ fn app(cx: Scope) -> Element {
                     "Stop"
                 },
             },
-            if !*is_start.get() {
-                running(cx)
-            }
+            running(cx, is_start.get())
         }
     })
 }
 
-fn running(cx: Scope) -> Element {
+fn running<'a>(cx: Scope<'a>, is_start: &'a bool) -> Element<'a> {
     cx.render (rsx! {
         h3 {
             width: "auto",
             padding_left: "10px",
             padding_right: "10px",
             align_self: "center",
-            "Currently running..."
+            if *is_start {
+                "Not running."
+            } else {
+                "Currently running..."
+            }
         }
     })
 }
