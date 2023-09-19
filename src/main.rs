@@ -1,3 +1,4 @@
+#![windows_subsystem = "windows"]
 mod steam_scheduler;
 
 use chrono::NaiveTime;
@@ -7,8 +8,6 @@ use crate::steam_scheduler::InvisScheduler;
 use std::borrow::Borrow;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
-use dioxus::html::{div, h1};
-
 
 fn main() {
     dioxus_desktop::launch(app);
@@ -16,7 +15,7 @@ fn main() {
 
 fn app(cx: Scope) -> Element {
     let scheduler = InvisScheduler {
-        interval: Interval::Monday,
+        interval: Interval::Weekday,
         start_time: NaiveTime::from_hms_opt(5, 0, 0).unwrap(),
         end_time: NaiveTime::from_hms_opt(17, 0, 0).unwrap(),
     };
