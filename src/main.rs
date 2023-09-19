@@ -1,64 +1,76 @@
-use std::{thread};
-use std::time::{Duration};
-use chrono::{Local, NaiveTime};
-use clokwerk::{Job, Scheduler};
-use clokwerk::Interval::Weekday;
-use console::Term;
+#![windows_subsystem = "windows"]
+mod steam_scheduler;
+
+use chrono::NaiveTime;
+use clokwerk::{Interval};
+use dioxus::prelude::*;
+use crate::steam_scheduler::InvisScheduler;
+use std::borrow::Borrow;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 fn main() {
-    update_steam_status();
-    schedule();
-    wait_for_quit();
+    dioxus_desktop::launch(app);
 }
 
-fn update_steam_status() {
-    let time_range_start = NaiveTime::from_hms_opt(5,0,0).unwrap();
-    let time_range_end = NaiveTime::from_hms_opt(17,0,0).unwrap();
-    let current_time = Local::now().time();
+fn app(cx: Scope) -> Element {
+    let scheduler = InvisScheduler {
+        interval: Interval::Weekday,
+        start_time: NaiveTime::from_hms_opt(5, 0, 0).unwrap(),
+        end_time: NaiveTime::from_hms_opt(17, 0, 0).unwrap(),
+    };
 
-    if current_time > time_range_start && current_time < time_range_end {
-        set_steam_invisible()
-    } else {
-        set_steam_online()
-    }
+    let is_start = use_state(cx, || true);
+    let stop= use_state(cx, || Arc::new(AtomicBool::default()));
+
+    cx.render(rsx! {
+        div {
+            display: "flex",
+            flex_direction: "column",
+            align_content: "center",
+            flex_wrap: "wrap",
+            h1 {
+                "Steam Status Scheduler"
+            },
+            button {
+                width: "auto",
+                padding_left: "10px",
+                padding_right: "10px",
+                align_self: "center",
+                onclick: move |_| {
+                    if *is_start.get() {
+                        stop.get().store(false, Ordering::SeqCst);
+                        scheduler.start_schedule(&stop);
+                        is_start.set(false);
+                    } else {
+                        stop.get().store(true, Ordering::SeqCst);
+                        is_start.set(true);
+                    }
+                },
+                if *is_start.get() {
+                    "Start"
+                } else {
+                    "Stop"
+                },
+            },
+            running(cx, is_start.get())
+        }
+    })
 }
 
-fn set_steam_online() {
-    open::that("steam://friends/status/online").unwrap();
-}
-
-fn set_steam_invisible() {
-    open::that("steam://friends/status/invisible").unwrap();
-}
-
-fn wait_for_quit() {
-    println!("Steam will show as invisible from 5am to 5pm\n");
-    println!("Press `t` to terminate...");
-    let stdout = Term::buffered_stdout();
-
-    loop {
-        if let Ok(character) = stdout.read_char() {
-            match character {
-                't' => break,
-                _ => (),
+fn running<'a>(cx: Scope<'a>, is_start: &'a bool) -> Element<'a> {
+    cx.render (rsx! {
+        h3 {
+            width: "auto",
+            padding_left: "10px",
+            padding_right: "10px",
+            align_self: "center",
+            if *is_start {
+                "Not running."
+            } else {
+                "Currently running..."
             }
         }
-    }
+    })
 }
 
-fn schedule() {
-    let mut scheduler = Scheduler::new();
-    scheduler
-        .every(Weekday)
-        .at_time(NaiveTime::from_hms_opt(5, 0, 1).unwrap())
-        .and_every(Weekday)
-        .at_time(NaiveTime::from_hms_opt(17, 0, 1).unwrap())
-        .run(move || update_steam_status());
-
-    thread::spawn(move || {
-        loop {
-            scheduler.run_pending();
-            thread::sleep(Duration::from_millis(1000));
-        }
-    });
-}
